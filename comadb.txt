@@ -1,0 +1,82 @@
+CREATE TABLE DEPARTMENT (
+    Department_ID INT PRIMARY KEY,
+    Department_Name VARCHAR(255) 
+);
+
+
+INSERT INTO DEPARTMENT (Department_ID, Department_Name) VALUES 
+(1, 'Computer Science'),
+(2, 'Electrical Engineering');
+
+CREATE TABLE SERVICE_CATEGORY (
+    Category_Name VARCHAR(255) PRIMARY KEY 
+);
+
+
+INSERT INTO SERVICE_CATEGORY (Category_Name) VALUES 
+('IT Support'),
+('Plumbing'),
+('Electrical'),
+('Cleaning'),
+('Carpentry');
+
+CREATE TABLE ADMIN (
+    Admin_ID INT PRIMARY KEY,
+    Admin_Name VARCHAR(255),
+    Phone VARCHAR(20),
+    Email VARCHAR(255)
+);
+
+CREATE TABLE STAFF (
+    Staff_ID INT PRIMARY KEY,
+    Staff_Name VARCHAR(255),
+    Staff_Type VARCHAR(100),
+    Phone VARCHAR(20),
+    Email VARCHAR(255)
+);
+
+CREATE TABLE STUDENT (
+    Student_ID INT PRIMARY KEY,
+    Student_Name VARCHAR(255),
+    Year INT,
+    Phone VARCHAR(20),
+    Email VARCHAR(255),
+    Department_ID INT,
+    FOREIGN KEY (Department_ID) REFERENCES DEPARTMENT(Department_ID)
+);
+
+CREATE TABLE Ticket (
+    Ticket_Id INT PRIMARY KEY,
+    Title VARCHAR(255),
+    Description TEXT,
+    Status VARCHAR(50), 
+    Priority VARCHAR(50), 
+    Created_Date DATE,
+    Resolved_Date DATE,
+    Location VARCHAR(255), -- Now a user-input text field instead of a Foreign Key
+    Student_ID INT,
+    Category_Name VARCHAR(255),
+    FOREIGN KEY (Student_ID) REFERENCES STUDENT(Student_ID),
+    FOREIGN KEY (Category_Name) REFERENCES SERVICE_CATEGORY(Category_Name)
+);
+
+CREATE TABLE ASSIGNMENT (
+    Assignment_ID INT PRIMARY KEY,
+    Assigned_Date DATE,
+    Remarks TEXT,
+    Ticket_Id INT,
+    Admin_ID INT,
+    Staff_ID INT,
+    FOREIGN KEY (Ticket_Id) REFERENCES Ticket(Ticket_Id),
+    FOREIGN KEY (Admin_ID) REFERENCES ADMIN(Admin_ID),
+    FOREIGN KEY (Staff_ID) REFERENCES STAFF(Staff_ID)
+);
+
+CREATE TABLE FEEDBACK (
+    Feedback_ID INT PRIMARY KEY,
+    Feedback_Date DATE,
+    Rating INT,
+    Comments TEXT,
+    Assignment_ID INT,
+    FOREIGN KEY (Assignment_ID) REFERENCES ASSIGNMENT(Assignment_ID)
+);
