@@ -53,7 +53,7 @@ CREATE TABLE Ticket (
     Priority VARCHAR(50), 
     Created_Date DATE,
     Resolved_Date DATE,
-    Location VARCHAR(255), -- Now a user-input text field instead of a Foreign Key
+    Location VARCHAR(255), 
     Student_ID INT,
     Category_Name VARCHAR(255),
     FOREIGN KEY (Student_ID) REFERENCES STUDENT(Student_ID),
