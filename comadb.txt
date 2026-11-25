@@ -1,82 +1,102 @@
+-- ============================================================================
+-- CAMPUS SERVICE REQUEST AND COMPLAINT MANAGEMENT SYSTEM (3NF RELATIONAL DDL)
+-- Entities: DEPARTMENT, SERVICE_CATEGORY, ADMIN, STAFF, STUDENT, TICKET, ASSIGNMENT, FEEDBACK
+-- ============================================================================
+
 CREATE TABLE DEPARTMENT (
-    Department_ID INT PRIMARY KEY,
-    Department_Name VARCHAR(255) 
+  dept_id            INT PRIMARY KEY AUTO_INCREMENT,
+  dept_code          VARCHAR(12) NOT NULL UNIQUE,
+  dept_name          VARCHAR(120) NOT NULL UNIQUE,
+  building_location  VARCHAR(120) NOT NULL,
+  contact_email      VARCHAR(120) NOT NULL,
+  contact_phone      VARCHAR(24)  NOT NULL,
+  created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-
-INSERT INTO DEPARTMENT (Department_ID, Department_Name) VALUES 
-(1, 'Computer Science'),
-(2, 'Electrical Engineering');
 
 CREATE TABLE SERVICE_CATEGORY (
-    Category_Name VARCHAR(255) PRIMARY KEY 
+  category_id        INT PRIMARY KEY AUTO_INCREMENT,
+  dept_id            INT NOT NULL,
+  category_name      VARCHAR(120) NOT NULL UNIQUE,
+  sla_hours          INT NOT NULL DEFAULT 24,
+  description        TEXT,
+  is_active          BOOLEAN NOT NULL DEFAULT TRUE,
+  CONSTRAINT fk_category_dept FOREIGN KEY (dept_id) REFERENCES DEPARTMENT(dept_id)
 );
 
-
-INSERT INTO SERVICE_CATEGORY (Category_Name) VALUES 
-('IT Support'),
-('Plumbing'),
-('Electrical'),
-('Cleaning'),
-('Carpentry');
-
 CREATE TABLE ADMIN (
-    Admin_ID INT PRIMARY KEY,
-    Admin_Name VARCHAR(255),
-    Phone VARCHAR(20),
-    Email VARCHAR(255)
+  admin_id           INT PRIMARY KEY AUTO_INCREMENT,
+  full_name          VARCHAR(100) NOT NULL,
+  email              VARCHAR(120) NOT NULL UNIQUE,
+  password_hash      VARCHAR(255) NOT NULL,
+  role_title         VARCHAR(100) NOT NULL,
+  phone              VARCHAR(24),
+  created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE STAFF (
-    Staff_ID INT PRIMARY KEY,
-    Staff_Name VARCHAR(255),
-    Staff_Type VARCHAR(100),
-    Phone VARCHAR(20),
-    Email VARCHAR(255)
+  staff_id           INT PRIMARY KEY AUTO_INCREMENT,
+  dept_id            INT NOT NULL,
+  employee_code      VARCHAR(24)  NOT NULL UNIQUE,
+  full_name          VARCHAR(100) NOT NULL,
+  email              VARCHAR(120) NOT NULL UNIQUE,
+  password_hash      VARCHAR(255) NOT NULL,
+  designation        VARCHAR(100) NOT NULL,
+  phone              VARCHAR(24)  NOT NULL,
+  availability_status ENUM('Available','Busy','On Leave') DEFAULT 'Available',
+  created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_staff_dept FOREIGN KEY (dept_id) REFERENCES DEPARTMENT(dept_id)
 );
 
 CREATE TABLE STUDENT (
-    Student_ID INT PRIMARY KEY,
-    Student_Name VARCHAR(255),
-    Year INT,
-    Phone VARCHAR(20),
-    Email VARCHAR(255),
-    Department_ID INT,
-    FOREIGN KEY (Department_ID) REFERENCES DEPARTMENT(Department_ID)
+  student_id         INT PRIMARY KEY AUTO_INCREMENT,
+  roll_number        VARCHAR(32)  NOT NULL UNIQUE,
+  full_name          VARCHAR(100) NOT NULL,
+  email              VARCHAR(120) NOT NULL UNIQUE,
+  password_hash      VARCHAR(255) NOT NULL,
+  program            VARCHAR(100) NOT NULL,
+  semester           INT NOT NULL,
+  hostel_or_block    VARCHAR(100) NOT NULL,
+  phone              VARCHAR(24)  NOT NULL,
+  created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE Ticket (
-    Ticket_Id INT PRIMARY KEY,
-    Title VARCHAR(255),
-    Description TEXT,
-    Status VARCHAR(50), 
-    Priority VARCHAR(50), 
-    Created_Date DATE,
-    Resolved_Date DATE,
-    Location VARCHAR(255), 
-    Student_ID INT,
-    Category_Name VARCHAR(255),
-    FOREIGN KEY (Student_ID) REFERENCES STUDENT(Student_ID),
-    FOREIGN KEY (Category_Name) REFERENCES SERVICE_CATEGORY(Category_Name)
+CREATE TABLE TICKET (
+  ticket_id          INT PRIMARY KEY AUTO_INCREMENT,
+  student_id         INT NOT NULL,
+  category_id        INT NOT NULL,
+  title              VARCHAR(160) NOT NULL,
+  description        TEXT NOT NULL,
+  campus_location    VARCHAR(160) NOT NULL,
+  priority           ENUM('Low','Medium','High','Urgent') NOT NULL DEFAULT 'Medium',
+  status             ENUM('Pending','Assigned','In Progress','Resolved') NOT NULL DEFAULT 'Pending',
+  created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  resolved_at        TIMESTAMP NULL,
+  CONSTRAINT fk_ticket_student  FOREIGN KEY (student_id)  REFERENCES STUDENT(student_id),
+  CONSTRAINT fk_ticket_category FOREIGN KEY (category_id) REFERENCES SERVICE_CATEGORY(category_id)
 );
 
 CREATE TABLE ASSIGNMENT (
-    Assignment_ID INT PRIMARY KEY,
-    Assigned_Date DATE,
-    Remarks TEXT,
-    Ticket_Id INT,
-    Admin_ID INT,
-    Staff_ID INT,
-    FOREIGN KEY (Ticket_Id) REFERENCES Ticket(Ticket_Id),
-    FOREIGN KEY (Admin_ID) REFERENCES ADMIN(Admin_ID),
-    FOREIGN KEY (Staff_ID) REFERENCES STAFF(Staff_ID)
+  assignment_id      INT PRIMARY KEY AUTO_INCREMENT,
+  ticket_id          INT NOT NULL,
+  staff_id           INT NOT NULL,
+  admin_id           INT NOT NULL,
+  assigned_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  admin_remarks      TEXT,
+  staff_remarks      TEXT,
+  assignment_status  ENUM('Active','In Progress','Completed','Reassigned') DEFAULT 'Active',
+  CONSTRAINT fk_assign_ticket FOREIGN KEY (ticket_id) REFERENCES TICKET(ticket_id),
+  CONSTRAINT fk_assign_staff  FOREIGN KEY (staff_id)  REFERENCES STAFF(staff_id),
+  CONSTRAINT fk_assign_admin  FOREIGN KEY (admin_id)  REFERENCES ADMIN(admin_id)
 );
 
 CREATE TABLE FEEDBACK (
-    Feedback_ID INT PRIMARY KEY,
-    Feedback_Date DATE,
-    Rating INT,
-    Comments TEXT,
-    Assignment_ID INT,
-    FOREIGN KEY (Assignment_ID) REFERENCES ASSIGNMENT(Assignment_ID)
+  feedback_id        INT PRIMARY KEY AUTO_INCREMENT,
+  ticket_id          INT NOT NULL UNIQUE,
+  student_id         INT NOT NULL,
+  rating             INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  comments           TEXT,
+  submitted_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_feedback_ticket  FOREIGN KEY (ticket_id)  REFERENCES TICKET(ticket_id),
+  CONSTRAINT fk_feedback_student FOREIGN KEY (student_id) REFERENCES STUDENT(student_id)
 );
